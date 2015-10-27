@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -27,6 +28,8 @@ namespace CasualRacer
         private DispatcherTimer timer = new DispatcherTimer();
         private Stopwatch totalWatch = new Stopwatch();
         private Stopwatch elapsedWatch = new Stopwatch();
+        private Thread keyboardThread;
+        private volatile bool shouldStopKeyboardThread;
 
         public GameControl()
         {
@@ -40,8 +43,22 @@ namespace CasualRacer
             totalWatch.Start();
             elapsedWatch.Start();
 
-            Application.Current.MainWindow.KeyDown += MainWindow_KeyDown;
-            Application.Current.MainWindow.KeyUp += MainWindow_KeyUp;
+            keyboardThread = new Thread(new ThreadStart(KeyboardThread));
+            keyboardThread.SetApartmentState(ApartmentState.STA);
+
+            Application.Current.Exit += (sender, args) => this.Stop();
+        }
+
+        public void Start()
+        {
+            shouldStopKeyboardThread = false;
+            keyboardThread.Start();
+        }
+
+        public void Stop()
+        {
+            shouldStopKeyboardThread = true;
+            keyboardThread.Join();
         }
 
         private void Timer_Tick(object sender, EventArgs e)
@@ -51,23 +68,15 @@ namespace CasualRacer
             game.Update(totalWatch.Elapsed, elapsed);
         }
 
-        private void MainWindow_KeyUp(object sender, KeyEventArgs e)
+        private void KeyboardThread()
         {
-            switch (e.Key)
+            while (!shouldStopKeyboardThread)
             {
-                case Key.Up: game.Player1.Acceleration = false; break;
-                case Key.Left: game.Player1.WheelLeft = false; break;
-                case Key.Right: game.Player1.WheelRight = false; break;
-            }
-        }
+                this.game.Player1.Acceleration = Keyboard.IsKeyDown(Key.Up);
+                this.game.Player1.WheelLeft = Keyboard.IsKeyDown(Key.Left);
+                this.game.Player1.WheelRight = Keyboard.IsKeyDown(Key.Right);
 
-        private void MainWindow_KeyDown(object sender, KeyEventArgs e)
-        {
-            switch (e.Key)
-            {
-                case Key.Up: game.Player1.Acceleration = true; break;
-                case Key.Left: game.Player1.WheelLeft = true; break;
-                case Key.Right: game.Player1.WheelRight = true; break;
+                Thread.Sleep(50);
             }
         }
     }
