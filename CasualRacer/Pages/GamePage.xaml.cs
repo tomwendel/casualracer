@@ -23,6 +23,18 @@ namespace CasualRacer.Pages
         public GamePage()
         {
             InitializeComponent();
+            this.Loaded += GamePage_Loaded;
+            this.Unloaded += GamePage_Unloaded;
+        }
+
+        private void GamePage_Loaded(object sender, RoutedEventArgs e)
+        {
+            theGameControl.Start();
+        }
+
+        private void GamePage_Unloaded(object sender, RoutedEventArgs e)
+        {
+            theGameControl.Stop();
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)

@@ -11,6 +11,6 @@
 
     <Grid>
         <Button Content="Back" HorizontalAlignment="Left" VerticalAlignment="Top" Click="Button_Click" />
-        <CasualRacer:GameControl  Margin="20 50 20 20" />
+        <CasualRacer:GameControl x:Name="theGameControl" Margin="20 50 20 20" />
     </Grid>
 </Page>
